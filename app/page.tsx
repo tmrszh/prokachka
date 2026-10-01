@@ -52,6 +52,28 @@ export default function Page() {
           <p className="mt-6 max-w-md text-lg leading-8 text-[#69756c]">Маленькие шаги складываются в большую привычку. Без давления, только вперёд.</p>
         </section>
 
+        <section className="mt-12 sm:mt-16">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#758078]">Заметки по дизайну</p>
+              <h2 className="mt-2 text-2xl font-bold tracking-[-0.04em]">Лёгкий, поддерживающий стиль</h2>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              { title: 'Тон', text: 'Интерфейс должен чувствовать поддержку, а не давление: спокойные формулировки и мягкий позитив.' },
+              { title: 'Палитра', text: 'Основной набор — тёмный графит, зелёные акценты и тёплые оттенки для контраста без перегруза.' },
+              { title: 'Комфорт', text: 'Большие кнопки, много воздуха, закруглённые карточки и понятные статусы повышают вовлечённость.' },
+            ].map((note) => (
+              <article key={note.title} className="rounded-[22px] border border-[#e5e9e1] bg-white p-5 shadow-[0_5px_20px_rgba(29,43,34,0.03)]">
+                <div className="mb-3 inline-flex rounded-full bg-[#eef4e5] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#52651e]">{note.title}</div>
+                <p className="text-sm leading-7 text-[#5b665f]">{note.text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <section className="mt-12 flex flex-1 flex-col pb-10 sm:mt-16">
           <div className="mb-5 flex items-end justify-between gap-4">
             <div><h2 className="text-2xl font-bold tracking-[-0.04em]">Твои привычки</h2><p className="mt-1 text-sm text-[#879188]">{habits.filter((habit) => habit.done).length} из {habits.length} на сегодня</p></div>
