@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Check, Flame, LogOut, Plus, X } from 'lucide-react'
 
 type Habit = { id: string; name: string; streak: number; done: boolean; color: string }
@@ -13,7 +13,7 @@ export default function Page() {
   const [isAdding, setIsAdding] = useState(false)
   const [name, setName] = useState('')
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
-
+  const pending = useRef(new Set<string>())
  async function loadHabits() {
     try {
       const response = await fetch('/api/habits')
@@ -30,15 +30,20 @@ export default function Page() {
     loadHabits()
   }, [])
 
-  async function toggleHabit(id: string) {
+ async function toggleHabit(id: string) {
     const habit = habits.find((h) => h.id === id)
-    if (!habit || habit.done) return
-    await fetch('/api/checkin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ habitId: id }),
-    })
-    await loadHabits()
+    if (!habit || habit.done || pending.current.has(id)) return
+    pending.current.add(id)
+    try {
+      await fetch('/api/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ habitId: id }),
+      })
+      await loadHabits()
+    } finally {
+      pending.current.delete(id)
+    }
   }
 
   async function addHabit(event: React.FormEvent) {
@@ -136,7 +141,7 @@ export default function Page() {
         </section>
       </div>
 
-      {isAdding && <div className="fixed inset-0 z-10 grid place-items-center bg-[#19201d]/30 p-5" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsAdding(false) }}><form onSubmit={addHabit} className="w-full max-w-md rounded-[26px] bg-white p-6 shadow-2xl sm:p-8"><div className="mb-6 flex items-start justify-between"><div><h2 className="text-2xl font-bold tracking-[-0.04em]">Новая привычка</h2><p className="mt-1 text-sm text-[#5b665f]">Что хочешь делать регулярно?</p></div><button type="button" onClick={() => setIsAdding(false)} aria-label="Закрыть"><X className="size-5 text-[#5b665f]" /></button></div><label className="text-sm font-semibold" htmlFor="habit-name">Название</label><input id="habit-name" autoFocus value={name} onChange={(event) => setName(event.target.value)} placeholder="Например, бегать 20 минут" className="mt-2 w-full rounded-xl border border-[#dfe5dc] px-4 py-3 outline-none transition focus:border-[#9fba48] focus:ring-4 focus:ring-[#e7f5b5]" /><button type="submit" className="mt-5 w-full rounded-xl bg-[#19201d] py-3 font-semibold text-white transition hover:bg-[#344039]">Добавить привычку</button></form></div>}
+      {isAdding && <div className="fixed inset-0 z-10 grid place-items-center bg-[#19201d]/30 p-5" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsAdding(false) }}><form onSubmit={addHabit} className="w-full max-w-md rounded-[26px] bg-white p-6 shadow-2xl sm:p-8"><div className="mb-6 flex items-start justify-between"><div><h2 className="text-2xl font-bold tracking-[-0.04em]">Новая привычка</h2><p className="mt-1 text-sm text-[#5b665f]">Что хочешь делать регулярно?</p></div><button type="button" onClick={() => setIsAdding(false)} aria-label="Закрыть"><X className="size-5 text-[#5b665f]" /></button></div><label className="text-sm font-semibold" htmlFor="habit-name">Название</label><input id="habit-name" autoFocus maxLength={40} value={name} onChange={(event) => setName(event.target.value)} placeholder="Например, бегать 20 минут" className="mt-2 w-full rounded-xl border border-[#dfe5dc] px-4 py-3 outline-none transition focus:border-[#9fba48] focus:ring-4 focus:ring-[#e7f5b5]" /><button type="submit" className="mt-5 w-full rounded-xl bg-[#19201d] py-3 font-semibold text-white transition hover:bg-[#344039]">Добавить привычку</button></form></div>}
     </main>
   )
 }
